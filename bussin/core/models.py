@@ -8,3 +8,8 @@ class CrowdStatus(models.Model):
     def __str__(self):
         return f"{self.timestamp} - {self.count} people ({self.status})"
 
+class BusStop(models.Model):
+    stop_code = models.CharField(max_length=10)
+    stop_name = models.CharField(max_length=50)
+    stop_long = models.FloatField()
+    stop_lat = models.FloatField()
