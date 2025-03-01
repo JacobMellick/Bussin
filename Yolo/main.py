@@ -7,7 +7,7 @@ import supervision as sv
 import numpy as np
 
 # Define the Django API URL
-DJANGO_API_URL = "http://127.0.0.1:8000/api/crowd-status/southgate/"
+DJANGO_API_URL = "http://127.0.0.1:8000/api/crowd-status/Southgate Station/"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="YOLOv8")

@@ -10,3 +10,4 @@ class CrowdStatus(models.Model):
         return f"{self.timestamp} - {self.count} people ({self.status})"
 
 
+
