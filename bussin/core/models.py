@@ -1,6 +1,7 @@
 from django.db import models
 
 class CrowdStatus(models.Model):
+    station = models.CharField(max_length=100)
     count = models.IntegerField()
     status = models.CharField(max_length=20)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -13,3 +14,4 @@ class BusStop(models.Model):
     stop_name = models.CharField(max_length=50)
     stop_long = models.FloatField()
     stop_lat = models.FloatField()
+
