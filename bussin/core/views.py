@@ -44,14 +44,21 @@ def crowd_status(request, station_name=None):
 from twilio.twiml.messaging_response import MessagingResponse, Message
 
 
+def get_recent_count():
+    try:
+        reading = CrowdStatus.objects.latest('timestamp')
+        return f"\nPeople: {reading.count}\nCrowdedness: {reading.status}"
+    except:
+        return ""
+
 def sms_message_builder(query_stop_code, route=None):
     stops = BusStop.objects.filter(stop_code=query_stop_code)
     if len(stops) == 0:
         return "That is not a valid stop"
     elif route is None:
-        return f"Stop: {query_stop_code}"
+        return f"Stop: {query_stop_code}" + get_recent_count()
     else:
-        return f"Stop: {query_stop_code}\nRoute: {route}"
+        return f"Stop: {query_stop_code}\nRoute: {route}" + get_recent_stop()
 
 def sms_endpoint(request):
     """Endpoint for Twilio to respond to incoming text messages"""
