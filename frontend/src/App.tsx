@@ -1,8 +1,5 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import CrowdStatusForm from './components/CrowdStatusForm';
-import ArrivalTimeForm from './components/ArrivalTimeForm';
+import CombinedStatusForm from './components/CombinedStatusForm';
 import './App.css'
 
 function App() {
@@ -10,8 +7,7 @@ function App() {
     <div className="app-container">
       <h1>BetterBus Service</h1>
       <div className="forms-container">
-        <CrowdStatusForm />
-        <ArrivalTimeForm />
+        <CombinedStatusForm />
       </div>
     </div>
   )
