@@ -5,6 +5,7 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import CrowdStatus
 from .serializers import CrowdStatusSerializer  # Import the serializer
+from django.http import HttpResponse
 
 @api_view(["GET", "POST"])
 @authentication_classes([])
@@ -31,3 +32,30 @@ def crowd_status(request):
             return Response({"crowd_status": serializer.data})
         else:
             return Response({"message": "No data available"}, status=404)
+
+from twilio.twiml.messaging_response import MessagingResponse, Message
+
+
+def sms_endpoint(request):
+    """Endpoint for Twilio to respond to incoming text messages"""
+
+    # parse query string [please send help I am not good with Django]
+    query_dict = {}
+    query_dict["Body"] = ""
+    for i in request.META["QUERY_STRING"].split('&'):
+        try:
+            k,v = i.split("=")
+            query_dict[k] = v.replace("+"," ")
+        except:
+            pass
+
+    # match syntax of text
+    match query_dict["Body"].split(" "):
+        case [stop_id] if len(stop_id) > 0: message_str = f"Stop: {stop_id}"
+        case [stop_id, route]: message_str = f"Stop: {stop_id}\nRoute: {route}"
+        case _: message_str = "Format: <Stop ID> <Optional Route Number>"
+
+    # prepare response, MessagingResponse might be overkill
+    response = MessagingResponse()
+    response.message(message_str)
+    return HttpResponse(str(response))
