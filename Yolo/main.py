@@ -7,7 +7,7 @@ import supervision as sv
 import numpy as np
 
 # Define the Django API URL
-DJANGO_API_URL = "http://127.0.0.1:8000/api/crowd-status/"
+DJANGO_API_URL = "http://127.0.0.1:8000/api/crowd-status/southgate/"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="YOLOv8")
@@ -52,7 +52,7 @@ def main():
 
         # Check if 1 minute has passed
         current_time = time.time()
-        if current_time - last_sent_time >= 60: 
+        if current_time - last_sent_time >= 30: 
             send_data_to_django(num_people)
             last_sent_time = current_time  
 
