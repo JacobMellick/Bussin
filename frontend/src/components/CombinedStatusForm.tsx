@@ -2,6 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { CrowdStatus, ArrivalInfo } from '../types/types';
 
 const CombinedStatusForm = () => {
+    const getCurrentTime = () => {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    };
+
     const mockBusStops = [
         { id: '984', name: 'Central Station (#984)' },
         { id: '123', name: 'Downtown Plaza (#123)' },
@@ -14,7 +19,7 @@ const CombinedStatusForm = () => {
     const [inputValue, setInputValue] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [filteredStops, setFilteredStops] = useState(mockBusStops);
-    const [currentTime, setCurrentTime] = useState('');
+    const [currentTime, setCurrentTime] = useState(getCurrentTime());
     const [crowdStatus, setCrowdStatus] = useState<string | null>(null);
     const [arrivalTimes, setArrivalTimes] = useState<ArrivalInfo[] | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
