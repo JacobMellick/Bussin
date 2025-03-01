@@ -173,3 +173,19 @@ cython_debug/
 
 # gtfs data
 *.pb
+
+
+/.venv
+bussin\core\migrations
+bussin/core/migrations
+bussin/core/db.sqlite3
+/venv
+bussin/bussin/__pycache__
+bussin/core/__pycache__
+*.DS_Store
+site/
+*.history*
+*.codebuddy
+nginx-dev.conf
+nginx-prod.conf
+nginx*
