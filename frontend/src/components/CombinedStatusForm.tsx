@@ -1,67 +1,39 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { CrowdStatus, ArrivalInfo } from '../types/types';
+import { 
+    Paper, 
+    Typography, 
+    Autocomplete, 
+    TextField, 
+    Button, 
+    Box,
+    Alert,
+    List,
+    ListItem,
+    ListItemText,
+    Stack
+} from '@mui/material';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import dayjs, { Dayjs } from 'dayjs'; // Add this import
 
 const CombinedStatusForm = () => {
     const mockBusStops = [
-        { id: '984', name: 'Central Station (#984)' },
-        { id: '123', name: 'Downtown Plaza (#123)' },
-        { id: '456', name: 'University Campus (#456)' },
-        { id: '789', name: 'Shopping Mall (#789)' },
-        { id: '321', name: 'Sports Complex (#321)' }
+        { id: '984', name: 'Central Station (#984)', label: 'Central Station (#984)' },
+        { id: '123', name: 'Downtown Plaza (#123)', label: 'Downtown Plaza (#123)' },
+        { id: '456', name: 'University Campus (#456)', label: 'University Campus (#456)' },
+        { id: '789', name: 'Shopping Mall (#789)', label: 'Shopping Mall (#789)' },
+        { id: '321', name: 'Sports Complex (#321)', label: 'Sports Complex (#321)' }
     ];
 
-    const [busStop, setBusStop] = useState('');
-    const [inputValue, setInputValue] = useState('');
-    const [isOpen, setIsOpen] = useState(false);
-    const [filteredStops, setFilteredStops] = useState(mockBusStops);
-    const [currentTime, setCurrentTime] = useState('');
+    const [busStop, setBusStop] = useState<any>(null);
+    const [currentTime, setCurrentTime] = useState<Dayjs | null>(dayjs()); // Change type to Dayjs
     const [crowdStatus, setCrowdStatus] = useState<string | null>(null);
     const [arrivalTimes, setArrivalTimes] = useState<ArrivalInfo[] | null>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const filtered = mockBusStops.filter(stop => 
-            stop.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-            stop.id.includes(inputValue)
-        );
-        setFilteredStops(filtered);
-    }, [inputValue]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleStopSelect = (stop: { id: string, name: string }) => {
-        setBusStop(stop.id);
-        setInputValue(stop.name);
-        setIsOpen(false);
-    };
-
-    const getStatusClassName = (status: string) => {
-        switch (status) {
-            case 'Overcrowded':
-                return 'status-display overcrowded';
-            case 'Moderately Crowded':
-                return 'status-display moderate';
-            case 'Low Crowd':
-                return 'status-display low';
-            default:
-                return 'status-display';
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!busStop) return;
 
-        // Mock API calls
         setCrowdStatus('Overcrowded');
 
         if (currentTime) {
@@ -73,63 +45,86 @@ const CombinedStatusForm = () => {
         }
     };
 
+    const getStatusSeverity = (status: string) => {
+        switch (status) {
+            case 'Overcrowded': return 'error';
+            case 'Moderately Crowded': return 'warning';
+            case 'Low Crowd': return 'success';
+            default: return 'info';
+        }
+    };
+
     return (
-        <div className="form-container">
-            <h2>Bus Stop Status</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="combobox-container" ref={dropdownRef}>
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => {
-                            setInputValue(e.target.value);
-                            setIsOpen(true);
-                        }}
-                        onFocus={() => setIsOpen(true)}
-                        placeholder="Search bus stop (e.g., 984)"
-                        className="bus-stop-input"
-                        required
-                    />
-                    {isOpen && filteredStops.length > 0 && (
-                        <div className="dropdown-list">
-                            {filteredStops.map(stop => (
-                                <div
-                                    key={stop.id}
-                                    className="dropdown-item"
-                                    onClick={() => handleStopSelect(stop)}
-                                >
-                                    {stop.name}
-                                </div>
-                            ))}
-                        </div>
+        <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+            <Typography variant="h5" gutterBottom>
+                Bus Stop Status
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Autocomplete
+                    options={mockBusStops}
+                    getOptionLabel={(option) => option.name}
+                    value={busStop}
+                    onChange={(_, newValue) => setBusStop(newValue)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Search bus stop"
+                            required
+                        />
                     )}
-                </div>
-                <input
-                    type="time"
-                    value={currentTime}
-                    onChange={(e) => setCurrentTime(e.target.value)}
-                    placeholder="Select time (optional)"
                 />
-                <button type="submit">Check Status{currentTime && ' & Arrivals'}</button>
-            </form>
+                
+                <TimePicker
+                    label="Select time (optional)"
+                    value={currentTime}
+                    onChange={(newValue) => setCurrentTime(newValue)}
+                />
+
+                <Button 
+                    variant="contained" 
+                    type="submit"
+                    sx={{ mt: 2 }}
+                >
+                    Check Status{currentTime && ' & Arrivals'}
+                </Button>
+            </Box>
             
             {crowdStatus && (
-                <div className={getStatusClassName(crowdStatus)}>
+                <Alert 
+                    severity={getStatusSeverity(crowdStatus)}
+                    sx={{ mt: 2 }}
+                >
                     Current Status: {crowdStatus}
-                </div>
+                </Alert>
             )}
             
             {currentTime && arrivalTimes && (
-                <div className="arrival-times-container">
-                    <h3>Upcoming Arrivals</h3>
-                    {arrivalTimes.map((arrival, index) => (
-                        <div key={index} className="time-display">
-                            {arrival.vehicleId} arrives in {arrival.minutes} minutes
-                        </div>
-                    ))}
-                </div>
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Upcoming Arrivals
+                    </Typography>
+                    <List>
+                        {arrivalTimes.map((arrival, index) => (
+                            <ListItem 
+                                key={index}
+                                sx={{ 
+                                    bgcolor: 'background.paper',
+                                    mb: 1,
+                                    borderRadius: 1,
+                                    border: '1px solid',
+                                    borderColor: 'divider'
+                                }}
+                            >
+                                <ListItemText 
+                                    primary={arrival.vehicleId}
+                                    secondary={`Arrives in ${arrival.minutes} minutes`}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
             )}
-        </div>
+        </Paper>
     );
 };
 
