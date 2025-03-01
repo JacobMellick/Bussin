@@ -52,7 +52,7 @@ def main():
 
         # Check if 1 minute has passed
         current_time = time.time()
-        if current_time - last_sent_time >= 30: 
+        if current_time - last_sent_time >= 1: 
             send_data_to_django(num_people)
             last_sent_time = current_time  
 

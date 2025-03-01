@@ -1,5 +1,5 @@
-import { useState, useEffect, SetStateAction } from 'react';
-import { CrowdStatus, ArrivalInfo } from '../types/types';
+import { useState, useEffect } from 'react';
+import { ArrivalInfo } from '../types/types';
 import { 
     Paper, 
     Typography, 
@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const CombinedStatusForm = () => {
     const [busStop, setBusStop] = useState<any>(null);
@@ -21,7 +22,20 @@ const CombinedStatusForm = () => {
     const [crowdStatus, setCrowdStatus] = useState<string | null>(null);
     const [arrivalTimes, setArrivalTimes] = useState<ArrivalInfo[] | null>(null);
     const [stops, setStops] = useState<any[]>([]);
+    
+    const [selectedStop, setSelectedStop] = useState<any>(null);
+    const [mapCenter, setMapCenter] = useState<{ lat: number, lng: number } | null>(null);
 
+    const containerStyle = {
+        width: '100%',
+        height: '400px'
+    };
+
+    const mapOptions = {
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: false,
+    };
 
     useEffect(() => {
         const fetchStops = async () => {
@@ -33,7 +47,7 @@ const CombinedStatusForm = () => {
     
             const data = await response.json();
             console.log('Fetched stops:', data);
-            const uniqueStops: SetStateAction<any[]> = [];
+            const uniqueStops: any[] = [];
             const stopNames = new Set();
     
             data.features.forEach((stop: any) => {
@@ -50,8 +64,14 @@ const CombinedStatusForm = () => {
         fetchStops();
     }, []);
     
-    
-    
+    useEffect(() => {
+        if (busStop) {
+            const lat = busStop.geometry.coordinates[1];
+            const lng = busStop.geometry.coordinates[0];
+            setMapCenter({ lat, lng });
+            setSelectedStop(busStop);
+        }
+    }, [busStop]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,7 +105,6 @@ const CombinedStatusForm = () => {
             console.error(error);
         }
     };
-    
 
     const getStatusSeverity = (status: string) => {
         switch (status) {
@@ -95,13 +114,40 @@ const CombinedStatusForm = () => {
             default: return 'info';
         }
     };
-
     return (
-        <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
-            <Typography variant="h5" gutterBottom>
-                Bus Stop Status
+        <Paper 
+            elevation={3} 
+            sx={{ 
+                p: 4,
+                maxWidth: 800,
+                mx: 'auto',
+                borderRadius: 2,
+                bgcolor: '#fafafa'
+            }}
+        >
+            <Typography 
+                variant="h4" 
+                gutterBottom
+                sx={{ 
+                    mb: 4,
+                    fontWeight: 'bold',
+                    color: 'primary.main',
+                    textAlign: 'center'
+                }}
+            >
+                Real-Time Bus Stop Status
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+            <Box 
+                component="form" 
+                onSubmit={handleSubmit} 
+                sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 3,
+                    mb: 4
+                }}
+            >
                 <Autocomplete
                     options={stops}
                     getOptionLabel={(option: any) => option.properties.stop_name}
@@ -112,6 +158,7 @@ const CombinedStatusForm = () => {
                             {...params}
                             label="Search bus stop"
                             required
+                            variant="filled"
                         />
                     )}
                 />
@@ -120,12 +167,18 @@ const CombinedStatusForm = () => {
                     label="Select time (optional)"
                     value={currentTime}
                     onChange={(newValue) => setCurrentTime(newValue)}
+                    sx={{ bgcolor: 'white' }}
                 />
 
                 <Button 
                     variant="contained" 
                     type="submit"
-                    sx={{ mt: 2 }}
+                    size="large"
+                    sx={{ 
+                        py: 1.5,
+                        fontSize: '1.1rem',
+                        fontWeight: 'bold'
+                    }}
                 >
                     Check Status{currentTime && ' & Arrivals'}
                 </Button>
@@ -134,15 +187,36 @@ const CombinedStatusForm = () => {
             {crowdStatus && (
                 <Alert 
                     severity={getStatusSeverity(crowdStatus)}
-                    sx={{ mt: 2 }}
+                    sx={{ 
+                        mt: 2,
+                        mb: 4,
+                        py: 2,
+                        fontSize: '1.1rem'
+                    }}
                 >
-                    Current Status: {crowdStatus}
+                    Current Status: <strong>{crowdStatus}</strong>
                 </Alert>
             )}
             
             {currentTime && arrivalTimes && (
-                <Box sx={{ mt: 3 }}>
-                    <Typography variant="h6" gutterBottom>
+                <Box 
+                    sx={{ 
+                        mt: 4,
+                        p: 3,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: 1
+                    }}
+                >
+                    <Typography 
+                        variant="h6" 
+                        gutterBottom
+                        sx={{ 
+                            color: 'primary.main',
+                            fontWeight: 'bold',
+                            mb: 2
+                        }}
+                    >
                         Upcoming Arrivals
                     </Typography>
                     <List>
@@ -150,21 +224,77 @@ const CombinedStatusForm = () => {
                             <ListItem 
                                 key={arrival.vehicleId}
                                 sx={{ 
-                                    bgcolor: 'background.paper',
-                                    mb: 1,
-                                    borderRadius: 1,
-                                    border: '1px solid',
-                                    borderColor: 'divider'
+                                    bgcolor: '#f5f5f5',
+                                    mb: 1.5,
+                                    borderRadius: 2,
+                                    transition: 'transform 0.2s',
+                                    '&:hover': {
+                                        transform: 'scale(1.02)',
+                                        bgcolor: '#f0f0f0'
+                                    }
                                 }}
                             >
                                 <ListItemText 
-                                    primary={arrival.vehicleId}
-                                    secondary={`Arrives in ${arrival.minutes} minutes`}
+                                    primary={
+                                        <Typography variant="subtitle1" fontWeight="bold">
+                                            {arrival.vehicleId}
+                                        </Typography>
+                                    }
+                                    secondary={
+                                        <Typography variant="body2" color="text.secondary">
+                                            Arrives in {arrival.minutes} minutes
+                                        </Typography>
+                                    }
                                 />
                             </ListItem>
                         ))}
                     </List>
+                </Box>
+            )}
 
+            {mapCenter && (
+                <Box 
+                    sx={{ 
+                        mt: 4,
+                        p: 3,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: 1
+                    }}
+                >
+                    <Typography 
+                        variant="h6" 
+                        gutterBottom
+                        sx={{ 
+                            color: 'primary.main',
+                            fontWeight: 'bold',
+                            mb: 2
+                        }}
+                    >
+                        Bus Stop Location
+                    </Typography>
+                    <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+                        <GoogleMap
+                            mapContainerStyle={{
+                                ...containerStyle,
+                                borderRadius: '8px',
+                            }}
+                            center={mapCenter}
+                            zoom={15}
+                            options={mapOptions}
+                        >
+                            <Marker position={mapCenter} />
+                            {selectedStop && (
+                                <InfoWindow position={mapCenter}>
+                                    <Box sx={{ p: 1 }}>
+                                        <Typography variant="body1" fontWeight="medium">
+                                            {selectedStop.properties.stop_name}
+                                        </Typography>
+                                    </Box>
+                                </InfoWindow>
+                            )}
+                        </GoogleMap>
+                    </LoadScript>
                 </Box>
             )}
         </Paper>
