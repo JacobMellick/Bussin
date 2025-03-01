@@ -15,3 +15,4 @@ class BusStop(models.Model):
     stop_long = models.FloatField()
     stop_lat = models.FloatField()
 
+
