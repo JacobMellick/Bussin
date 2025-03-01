@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import CrowdStatus
+from .models import BusStop
 from .serializers import CrowdStatusSerializer
 from django.http import HttpResponse
 
@@ -43,6 +44,15 @@ def crowd_status(request, station_name=None):
 from twilio.twiml.messaging_response import MessagingResponse, Message
 
 
+def sms_message_builder(query_stop_code, route=None):
+    stops = BusStop.objects.filter(stop_code=query_stop_code)
+    if len(stops) == 0:
+        return "That is not a valid stop"
+    elif route is None:
+        return f"Stop: {query_stop_code}"
+    else:
+        return f"Stop: {query_stop_code}\nRoute: {route}"
+
 def sms_endpoint(request):
     """Endpoint for Twilio to respond to incoming text messages"""
 
@@ -58,8 +68,8 @@ def sms_endpoint(request):
 
     # match syntax of text
     match query_dict["Body"].split(" "):
-        case [stop_id] if len(stop_id) > 0: message_str = f"Stop: {stop_id}"
-        case [stop_id, route]: message_str = f"Stop: {stop_id}\nRoute: {route}"
+        case [stop_id] if len(stop_id) > 0: message_str = sms_message_builder(stop_id)
+        case [stop_id, route]: message_str = sms_message_builder(stop_id, route)
         case _: message_str = "Format: <Stop ID> <Optional Route Number>"
 
     # prepare response, MessagingResponse might be overkill
