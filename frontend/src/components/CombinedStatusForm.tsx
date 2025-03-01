@@ -10,23 +10,14 @@ import {
     Alert,
     List,
     ListItem,
-    ListItemText,
-    Stack
+    ListItemText
 } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import dayjs, { Dayjs } from 'dayjs'; // Add this import
+import dayjs, { Dayjs } from 'dayjs';
 
 const CombinedStatusForm = () => {
-    const mockBusStops = [
-        { id: '984', name: 'Central Station (#984)', label: 'Central Station (#984)' },
-        { id: '123', name: 'Downtown Plaza (#123)', label: 'Downtown Plaza (#123)' },
-        { id: '456', name: 'University Campus (#456)', label: 'University Campus (#456)' },
-        { id: '789', name: 'Shopping Mall (#789)', label: 'Shopping Mall (#789)' },
-        { id: '321', name: 'Sports Complex (#321)', label: 'Sports Complex (#321)' }
-    ];
-
     const [busStop, setBusStop] = useState<any>(null);
-    const [currentTime, setCurrentTime] = useState<Dayjs | null>(dayjs()); // Change type to Dayjs
+    const [currentTime, setCurrentTime] = useState<Dayjs | null>(dayjs());
     const [crowdStatus, setCrowdStatus] = useState<string | null>(null);
     const [arrivalTimes, setArrivalTimes] = useState<ArrivalInfo[] | null>(null);
 
@@ -34,15 +25,9 @@ const CombinedStatusForm = () => {
         e.preventDefault();
         if (!busStop) return;
 
-        setCrowdStatus('Overcrowded');
-
-        if (currentTime) {
-            setArrivalTimes([
-                { vehicleId: 'Bus 123', minutes: 5 },
-                { vehicleId: 'Bus 456', minutes: 12 },
-                { vehicleId: 'Express Train A1', minutes: 8 }
-            ]);
-        }
+        // TODO: Replace with actual API calls
+        // setCrowdStatus(...);
+        // setArrivalTimes(...);
     };
 
     const getStatusSeverity = (status: string) => {
@@ -61,8 +46,8 @@ const CombinedStatusForm = () => {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Autocomplete
-                    options={mockBusStops}
-                    getOptionLabel={(option) => option.name}
+                    options={[]} // Will be populated from API
+                    getOptionLabel={(option: any) => option.name}
                     value={busStop}
                     onChange={(_, newValue) => setBusStop(newValue)}
                     renderInput={(params) => (
